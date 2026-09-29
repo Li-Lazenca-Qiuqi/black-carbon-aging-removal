@@ -1,0 +1,16 @@
+[project]
+name = "thesis-bc"
+version = "0.6.1"
+description = "Black carbon aircraft observation processing and ModelE comparison workflows"
+requires-python = ">=3.12"
+dependencies = [
+    "cartopy>=0.25.0",
+    "matplotlib>=3.10.1",
+    "numpy>=2.3.3",
+    "pandas>=2.3.2",
+    "pyshp>=3.0.3",
+    "shapely>=2.1.2",
+]
+
+[tool.uv]
+package = false
