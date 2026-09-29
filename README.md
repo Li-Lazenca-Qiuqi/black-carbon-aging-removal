@@ -1,15 +1,15 @@
-# 黑碳航测评估与敏感性分析复现
+# Reproducing the black carbon aircraft evaluation and sensitivity analysis
 
-本发布包使用原始观测、四实验已配对浓度数据和已审计的过程诊断中间表，重新计算论文统计并生成九幅论文图。不分发年度模式原始输出，也不包含完整 ModelE 模式工程。
+This package uses original aircraft observations, paired concentration products from four experiments, and audited process-diagnostic tables to recompute manuscript statistics and generate nine figures. It excludes annual raw model output and the complete ModelE source and runtime environment.
 
-## 运行
+## Setup and execution
 
-将两个文件夹并列放置。当前 `data` 未压缩约 2.893 GB：
+Place `data` and `black-carbon-aging-removal` next to each other. The uncompressed data occupy approximately 2.426 GB.
 
-收到六个 `.7z` 时，将它们全部解压到同一个 `data/` 目录，得到下方六个子目录；`manifest.json` 和数据说明放在 `data/` 根目录。压缩包内已包含各自的文件夹名称，无需再套同名目录。
+Download all 16 `.7z` archives from the Figshare data record: 11 original-observation archives and five other data archives. Extract them into the same `data/` directory to obtain the six subdirectories below. Place `manifest.json` and the data README in the root of `data/`. Each archive includes its directory structure; do not add another enclosing directory.
 
 ```text
-任意父目录/
+parent_directory/
 ├── data/
 │   ├── original-data/
 │   ├── processed/
@@ -25,41 +25,48 @@
     └── uv.lock
 ```
 
-使用 Python 3.12 和 uv，在代码库目录运行：
+Use Python 3.12 and uv. Run from the code repository:
 
 ```powershell
 uv run --locked python reproduce.py
 ```
 
-首次运行需安装锁文件中的依赖。数据和地图缓存已包含，输入路径相对于代码库位置解析。程序会重建观测清洗产品，并读取已配对模式产品和过程诊断中间表；请保证目录可写。
+The first run installs dependencies from the lock file. Data and map caches are included. Input paths are resolved relative to the code repository. The workflow rebuilds cleaned observation products and reads archived paired model products and process-diagnostic tables, so the directories must be writable.
 
-默认流程共 13 步：观测清洗、统计与稳健性分析、过程诊断统计和论文绘图。中断后可以从已具备输入的步骤续跑，例如：
+The default workflow has 13 steps covering observation cleaning, statistical and robustness analyses, process diagnostics, and manuscript figures. To resume, start from a step whose required inputs already exist:
 
 ```powershell
 uv run --locked python reproduce.py --start-at campaign
 ```
 
-全部步骤见 `--help`；`--stop-after` 可指定停止步骤。首次运行前可用 `--verify-data` 检查数据清单中的全部 SHA256。
+Use `--help` to list the steps and `--stop-after` to select the final step. Before the first run, use `--verify-data` to check all input SHA-256 hashes.
 
-## 结果
+## Outputs and validation
 
-- `results/manuscript_figures/`：正文 Figure 1–6 和附录 A1、B1、C1。
-- `results/baseline/tables/`、`results/comparison/tables/`：论文统计表。
-- `results/data_quality/`：统计支持和稳健性检查结果。
-- `results/reproduction_logs/`：逐步骤日志、耗时和退出码。
+- `results/manuscript_figures/`: main-text Figures 1–6 and appendix Figures A1, B1, and C1.
+- `results/baseline/tables/` and `results/comparison/tables/`: manuscript statistical tables.
+- `results/data_quality/`: statistical-support and robustness checks.
+- `results/reproduction_logs/`: step logs, execution times, and exit codes.
 
-运行结果、虚拟环境和缓存不进入 Git。作者本地保留独立参考快照用于验证，公开运行不依赖这些快照。
+Generated results, virtual environments, and caches are excluded from Git. Public execution does not require the independent reference snapshots used for local validation.
 
-已使用六个发布压缩包、全新 Python 环境和空结果目录完成隔离验证：全部 13 步成功，46 个统计表与原项目一致，九幅图与实际投稿图片逐像素一致。验证期间禁止读取原工作区、NetCDF 文件和访问网络；未发生越界访问。
+An isolated validation used the original six release archives, a fresh Python environment, and an empty output directory. All 13 steps completed; 46 statistical tables matched the original project, and nine figures were pixel-identical to the manuscript images. Access to the original workspace, NetCDF files, and the network was blocked; no prohibited access occurred. The original observations were subsequently split into 11 archives, and 22 unused DC3 20 Hz ZIP files were removed. The current 16 archives passed download, hash, and file-inventory checks. The full analysis was not rerun for this documentation update.
 
-## 复现范围
+## Reproduction scope
 
-公开输入支持重新进行观测清洗、配对产品一致性检查、模型支持聚合、bootstrap、敏感性与稳健性分析，以及论文图表生成。共同支持为 656,000 条记录、21 个 deployments 和 26,363 个模型支持单元。
+The inputs support observation cleaning, paired-product consistency checks, aggregation within model support units, bootstrap analyses, sensitivity and robustness analyses, and manuscript tables and figures. The common sample contains 656,000 records from 21 deployments and 26,363 model support units.
 
-`model_grid/` 仅保存从四实验 2008 年年度文件提取的 pressure/lat/lon 坐标，用于核对网格及重建支持索引，不包含完整模式物理变量场；来源和单位见 `model_grid/source.json`。`process_diagnostics/` 保存已验证的全球年度积分及其 QA 信息，过程统计采用共同完整的 2008–2023 年。
+`model_grid/` contains only pressure, latitude, and longitude coordinates extracted from the four experiments' 2008 annual files. These support grid checks and reconstruction of support indices; they are not complete model fields. Sources and units are documented in `model_grid/source.json`. `process_diagnostics/` contains verified annual global integrals and associated quality-control information. Process statistics use the complete common period, 2008–2023.
 
-本包仅复现发布数据支持的分析；不包含从年度模式场重新配对或重新计算全球过程积分的代码。
+The package reproduces analyses supported by the released inputs. It does not include code for rebuilding observation–model pairs from annual model fields or recalculating global process integrals from those fields.
 
-浓度保持标准状态口径，逐 10 s 记录不视为独立样本；原分析的随机种子、2000 次 campaign 内航日分块重采样、ORACLES 入口筛选、HIPPO UTC 跨月处理和百分位限制对照均保留。
+Concentrations retain the standard-state convention. Individual 10 s records are not treated as independent samples. The original random seeds, 2,000 within-campaign flight-day block-bootstrap replicates, ORACLES inlet filtering, HIPPO UTC month-boundary handling, and percentile-restriction comparisons are retained.
 
-原始观测来源、作者及使用条款见原始文件头和 `data/README.md`；使用时应引用对应数据产品。逐文件校验清单见 `data/manifest.json`。
+Consult original file headers and `data/README.md` for observation sources, authors, and use conditions, and cite the corresponding original data products. The file-level integrity manifest is `data/manifest.json`.
+
+## Archives and citation
+
+- Data: Li, Q. and Gao, C. Y.: Aircraft observations and GISS ModelE simulations of black carbon from polluted outflow to remote oceans, Version 1, Figshare [data set], https://doi.org/10.6084/m9.figshare.34021950, 2026.
+- Code: Li, Q.: black-carbon-aging-removal, Version 1, Figshare [software], https://doi.org/10.6084/m9.figshare.34022001, 2026.
+
+The code archive corresponds to GitHub tag `2026-09-29`. Citing these archives does not replace citations to the original aircraft data products or their conditions of use and redistribution.
